@@ -1,10 +1,13 @@
 package com.ee_stats.initial.models;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
@@ -12,7 +15,8 @@ import jakarta.persistence.Table;
 public class Company {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGen")
+    @SequenceGenerator(name = "seqGen", sequenceName = "companies_id_seq", initialValue = 1)
     private Integer id;
 
     private Integer quarter;
@@ -34,14 +38,14 @@ public class Company {
 
     private String county;
 
-    @Column(name = "state_taxes", precision = 10)
-    private Float stateTaxes;
+    @Column(name = "state_taxes", precision = 19, scale = 2)
+    private BigDecimal stateTaxes;
 
-    @Column(name = "labor_taxes", precision = 10)
-    private Float laborTaxes;
+    @Column(name = "labor_taxes", precision = 19, scale = 2)
+    private BigDecimal laborTaxes;
 
-    @Column(precision = 10)
-    private Float revenue;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal revenue;
 
     private Integer employees;
 
@@ -49,8 +53,8 @@ public class Company {
     }
 
     public Company(String registryCode, String name, String type, Boolean registeredVat, String businessArea,
-            String county, Float stateTaxes, Float laborTaxes, Float revenue, Integer employees, Integer quarter,
-            Integer year) {
+            String county, BigDecimal stateTaxes, BigDecimal laborTaxes, BigDecimal revenue, Integer employees,
+            Integer quarter, Integer year) {
         this.quarter = quarter;
         this.year = year;
         this.registryCode = registryCode;
@@ -101,15 +105,15 @@ public class Company {
         return county;
     }
 
-    public Float getStateTaxes() {
+    public BigDecimal getStateTaxes() {
         return stateTaxes;
     }
 
-    public Float getLaborTaxes() {
+    public BigDecimal getLaborTaxes() {
         return laborTaxes;
     }
 
-    public Float getRevenue() {
+    public BigDecimal getRevenue() {
         return revenue;
     }
 

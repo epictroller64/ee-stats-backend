@@ -1,12 +1,14 @@
 package com.ee_stats.initial.services;
 
-import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument;
-import org.odftoolkit.odfdom.doc.table.OdfTable;
-import org.odftoolkit.odfdom.doc.table.OdfTableRow;
-
-import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
+
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +21,7 @@ public class ExcelService {
 
     @Autowired
     private CompanyRepository companyRepository;
+
     private Integer year;
     private Integer quarter;
 
@@ -29,8 +32,8 @@ public class ExcelService {
             if (filename == null) {
                 throw new Exception("Filename is null");
             }
-            if (filename.endsWith(".ods")) {
-                companies = processOpenDocumentFile(file);
+            if (filename.endsWith(".xlsx")) {
+                companies = processXlsxDocumentFile(file);
             }
             if (companies == null) {
                 throw new Exception("Companies list is null");
@@ -42,38 +45,40 @@ public class ExcelService {
         return companies;
     }
 
-    private List<Company> processOpenDocumentFile(MultipartFile file) throws Exception {
-        try (OdfSpreadsheetDocument spreadsheet = OdfSpreadsheetDocument.loadDocument(file.getInputStream())) {
+    private List<Company> processXlsxDocumentFile(MultipartFile file) throws Exception {
+        try (XSSFWorkbook workbook = new XSSFWorkbook(file.getInputStream())) {
             String filename = file.getOriginalFilename();
-            OdfTable sheet = spreadsheet.getTableList(false).get(0);
-            List<OdfTableRow> rows = sheet.getRowList();
 
-            // Skip header
-            if (rows.size() > 0) {
-                rows.remove(0);
-            }
+            XSSFSheet sheet = workbook.getSheetAt(0);
 
             List<Company> companies = new ArrayList<>();
 
             year = getYearFromName(filename);
             quarter = getQuarterFromName(filename);
 
-            for (OdfTableRow row : rows) {
-                Company company = getCompanyFromODSRow(row);
+            for (int i = 0; i < sheet.getLastRowNum(); i++) {
+                if (i == 0) {
+                    continue;
+                }
+                XSSFRow row = sheet.getRow(i);
+                Company company = getCompanyFromXLSXRow(row);
                 if (company != null) {
                     companies.add(company);
-                } else {
-                    System.err.println("Company is null");
                 }
             }
 
+            int batchSize = 30; // Adjust the batch size as needed
+            for (int i = 0; i < companies.size(); i += batchSize) {
+                int end = Math.min(i + batchSize, companies.size());
+                List<Company> batchList = companies.subList(i, end);
+                companyRepository.saveAll(batchList);
+            }
             return companies;
         }
-
     }
 
     private Integer romanToArabic(String roman) {
-        switch (roman) {
+        switch (roman.toUpperCase()) {
             case "I":
                 return 1;
             case "II":
@@ -98,8 +103,8 @@ public class ExcelService {
         return Integer.parseInt(parts[2]);
     }
 
-    private Company getCompanyFromODSRow(OdfTableRow row) {
-        String registeredVatText = row.getCellByIndex(3).getStringValue();
+    private Company getCompanyFromXLSXRow(XSSFRow row) {
+        String registeredVatText = row.getCell(3).getStringCellValue();
         Boolean registeredVat = registeredVatText.equals("jah");
         if (isRowEmpty(row)) {
             return null;
@@ -111,27 +116,36 @@ public class ExcelService {
                 registeredVat,
                 getStringValueOrDefault(row, 4, ""),
                 getStringValueOrDefault(row, 5, ""),
-                getFloatValueOrDefault(row, 6, 0f),
-                getFloatValueOrDefault(row, 7, 0f),
-                getFloatValueOrDefault(row, 8, 0f),
-                getFloatValueOrDefault(row, 9, 0f).intValue(),
+                getBigDecimalValueOrDefault(row, 6, BigDecimal.ZERO),
+                getBigDecimalValueOrDefault(row, 7, BigDecimal.ZERO),
+                getBigDecimalValueOrDefault(row, 8, BigDecimal.ZERO),
+                getIntegerValueOrDefault(row, 9, 0),
                 quarter,
                 year);
 
     }
 
-    private Boolean isRowEmpty(OdfTableRow row) {
-        return row.getCellByIndex(0).getStringValue().isEmpty();
+    private BigDecimal getBigDecimalValueOrDefault(XSSFRow row, int index, BigDecimal defaultValue) {
+        try {
+            double value = row.getCell(index).getNumericCellValue();
+            return new BigDecimal(value).setScale(2, RoundingMode.HALF_UP);
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 
-    private String getStringValueOrDefault(OdfTableRow row, int index, String defaultValue) {
-        String value = row.getCellByIndex(index).getStringValue();
+    private Boolean isRowEmpty(XSSFRow row) {
+        return row.getCell(0).getStringCellValue().isEmpty();
+    }
+
+    private String getStringValueOrDefault(XSSFRow row, int index, String defaultValue) {
+        String value = row.getCell(index).getStringCellValue();
         return value != null && !value.trim().isEmpty() ? value : defaultValue;
     }
 
-    private Float getFloatValueOrDefault(OdfTableRow row, int index, Float defaultValue) {
+    private Integer getIntegerValueOrDefault(XSSFRow row, int index, Integer defaultValue) {
         try {
-            return row.getCellByIndex(index).getDoubleValue().floatValue();
+            return (int) row.getCell(index).getNumericCellValue();
         } catch (Exception e) {
             return defaultValue;
         }
