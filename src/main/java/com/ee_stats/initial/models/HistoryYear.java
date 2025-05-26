@@ -2,6 +2,9 @@ package com.ee_stats.initial.models;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.IdGeneratorType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -15,7 +18,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,9 +25,9 @@ import jakarta.persistence.Table;
 public class HistoryYear {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGen")
-    @SequenceGenerator(name = "seqGen", sequenceName = "history_years_id_seq", initialValue = 1)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @JsonIgnore
     @Column(name = "registry_code")
@@ -38,8 +40,8 @@ public class HistoryYear {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "company_history_id", referencedColumnName = "id")
-    private CompanyHistory companyHistory;
+    @JoinColumn(name = "company_id", referencedColumnName = "id")
+    private Company company;
 
     public HistoryYear() {
     }
@@ -58,11 +60,11 @@ public class HistoryYear {
     }
 
     public List<Quarter> getQuarters() {
-        return quarters;
+        return this.quarters;
     }
 
-    public CompanyHistory getCompanyHistory() {
-        return companyHistory;
+    public Company getCompany() {
+        return company;
     }
 
     public void addQuarter(Quarter quarter) {
@@ -78,10 +80,10 @@ public class HistoryYear {
 
     }
 
-    public void setCompanyHistory(CompanyHistory companyHistory) {
-        this.companyHistory = companyHistory;
-        if (companyHistory != null && !companyHistory.getHistoryYears().contains(this)) {
-            companyHistory.getHistoryYears().add(this);
+    public void setCompany(Company company) {
+        this.company = company;
+        if (company != null && !company.getHistoryYears().contains(this)) {
+            company.getHistoryYears().add(this);
         }
     }
 }

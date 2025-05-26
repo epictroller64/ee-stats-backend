@@ -1,13 +1,16 @@
 package com.ee_stats.initial.models;
 
-import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -15,109 +18,99 @@ import jakarta.persistence.Table;
 public class Company {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGen")
-    @SequenceGenerator(name = "seqGen", sequenceName = "companies_id_seq", initialValue = 1)
-    private Integer id;
-
-    private Integer quarter;
-
-    private Integer year;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "registry_code")
     private String registryCode;
 
-    private String name;
-
-    private String type;
-
-    @Column(name = "registered_vat")
-    private Boolean registeredVat;
-
     @Column(name = "business_area")
     private String businessArea;
 
+    @Column(name = "county")
     private String county;
 
-    @Column(name = "state_taxes", precision = 19, scale = 2)
-    private BigDecimal stateTaxes;
+    @Column(name = "name")
+    private String name;
 
-    @Column(name = "labor_taxes", precision = 19, scale = 2)
-    private BigDecimal laborTaxes;
+    @Column(name = "type")
+    private String type;
 
-    @Column(precision = 19, scale = 2)
-    private BigDecimal revenue;
+    @Column(name = "is_vat")
+    private Boolean isVat;
 
-    private Integer employees;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "company")
+    private List<HistoryYear> historyYears;
 
-    private Company() {
+    public Company() {
     }
 
-    public Company(String registryCode, String name, String type, Boolean registeredVat, String businessArea,
-            String county, BigDecimal stateTaxes, BigDecimal laborTaxes, BigDecimal revenue, Integer employees,
-            Integer quarter, Integer year) {
-        this.quarter = quarter;
-        this.year = year;
+    public Company(String registryCode, List<HistoryYear> historyYears) {
         this.registryCode = registryCode;
-        this.name = name;
-        this.type = type;
-        this.registeredVat = registeredVat;
-        this.businessArea = businessArea;
-        this.county = county;
-        this.stateTaxes = stateTaxes;
-        this.laborTaxes = laborTaxes;
-        this.revenue = revenue;
-        this.employees = employees;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public Integer getQuarter() {
-        return quarter;
-    }
-
-    public Integer getYear() {
-        return year;
+        this.historyYears = historyYears;
     }
 
     public String getRegistryCode() {
         return registryCode;
     }
 
-    public String getName() {
-        return name;
+    public UUID getId() {
+        return id;
     }
 
-    public String getType() {
-        return type;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
-    public Boolean getRegisteredVat() {
-        return registeredVat;
+    public List<HistoryYear> getHistoryYears() {
+        return historyYears;
+    }
+
+    public void setHistoryYears(List<HistoryYear> historyYears) {
+        this.historyYears = historyYears;
+    }
+
+    public void setRegistryCode(String registryCode) {
+        this.registryCode = registryCode;
     }
 
     public String getBusinessArea() {
         return businessArea;
     }
 
+    public void setBusinessArea(String businessArea) {
+        this.businessArea = businessArea;
+    }
+
     public String getCounty() {
         return county;
     }
 
-    public BigDecimal getStateTaxes() {
-        return stateTaxes;
+    public void setCounty(String county) {
+        this.county = county;
     }
 
-    public BigDecimal getLaborTaxes() {
-        return laborTaxes;
+    public String getName() {
+        return name;
     }
 
-    public BigDecimal getRevenue() {
-        return revenue;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public Integer getEmployees() {
-        return employees;
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Boolean getIsVat() {
+        return isVat;
+    }
+
+    public void setIsVat(Boolean isVat) {
+        this.isVat = isVat;
     }
 }
