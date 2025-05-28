@@ -1,5 +1,7 @@
 package com.ee_stats.initial.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,12 +31,12 @@ public class CompanyController {
         return companyService.findByRegistryCodeWithFullDetails(registryCode);
     }
 
-    @GetMapping("/")
+    @GetMapping("/all")
     public Iterable<Company> findAll() {
         return companyService.findAll();
     }
 
-    @GetMapping("/{page}/{size}")
+    @GetMapping("/all/{page}/{size}")
     public Page<CompanyDTO> findAll(@PathVariable Integer page, @PathVariable Integer size) {
         return companyService.findAllPaginated(page, size);
     }
@@ -42,5 +44,10 @@ public class CompanyController {
     @GetMapping("/search/{text}")
     public Page<CompanyDTO> search(@PathVariable String text, @RequestParam Integer page, @RequestParam Integer size) {
         return companyService.search(text, page, size);
+    }
+
+    @GetMapping("/owner/{ownerId}")
+    public List<CompanyDTO> findByOwnerId(@PathVariable String ownerId) {
+        return companyService.findByOwnerId(ownerId);
     }
 }

@@ -1,5 +1,8 @@
 package com.ee_stats.initial.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +42,11 @@ public class CompanyService {
     public Page<CompanyDTO> search(String text, Integer page, Integer size) {
         Page<Company> companies = companyRepository.findByNameContainingIgnoreCase(text, PageRequest.of(page, size));
         return companies.map(this::convertToDTO);
+    }
+
+    public List<CompanyDTO> findByOwnerId(String ownerId) {
+        List<Company> companies = companyRepository.findByOwnerId(ownerId);
+        return companies.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
     private CompanyDTO convertToDTO(Company company) {
