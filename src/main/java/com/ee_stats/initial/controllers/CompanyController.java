@@ -50,4 +50,10 @@ public class CompanyController {
     public List<CompanyDTO> findByOwnerId(@PathVariable String ownerId) {
         return companyService.findByOwnerId(ownerId);
     }
+
+    @GetMapping("/director/{personId}")
+    public List<CompanyDTO> findByDirectorId(@PathVariable String personId) {
+        // Get other relations with companies besides ownership
+        return companyService.findByDirectorId(personId);
+    }
 }

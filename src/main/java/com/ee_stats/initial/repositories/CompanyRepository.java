@@ -21,4 +21,7 @@ public interface CompanyRepository extends CrudRepository<Company, UUID> {
 
     @Query("SELECT c FROM Company c JOIN Ownership o ON c.registryCode = o.registryCode WHERE o.ownerId.id = :ownerId")
     List<Company> findByOwnerId(@Param("ownerId") String ownerId);
+
+    @Query("SELECT c FROM Company c JOIN Directorship d ON c.registryCode = d.registryCode WHERE d.directorId.id = :directorId")
+    List<Company> findByDirectorId(@Param("directorId") String directorId);
 }

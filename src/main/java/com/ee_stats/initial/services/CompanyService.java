@@ -49,6 +49,12 @@ public class CompanyService {
         return companies.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
+    public List<CompanyDTO> findByDirectorId(String personId) {
+        // Get other relations with companies besides ownership
+        List<Company> companies = companyRepository.findByDirectorId(personId);
+        return companies.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
     private CompanyDTO convertToDTO(Company company) {
         return new CompanyDTO(
                 company.getId(),
